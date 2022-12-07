@@ -44,7 +44,7 @@ def loadData(dataFile):
                 new_track_id = np.random.choice(all_tracks)
 
             # add user, new track to dataset mapping
-            dataSet.loc[len(dataSet.index)] = [user_id, new_track_id, 0]
+            dataSet.loc[len(dataSet.index)] = [user_id, new_track_id, -1]
 
     return dataSet
 
