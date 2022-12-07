@@ -1,7 +1,7 @@
 # modified from tryhw1
 
 print("loading data...")
-dataset = loadData("spotify_dataset.csv")
+dataset = loadData('data/spotify_dataset.csv')
 train, test = getTrainTestData(dataSet)
 print("done")
 print()
