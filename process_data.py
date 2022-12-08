@@ -1,5 +1,20 @@
 import pandas as pd
 import numpy as np
+import torch
+from torch.utils.data import Dataset
+
+# stores user, track, and interaction data from passed in dataSet
+class SpotifyDataset(Dataset):
+    def __init__(self, dataSet):
+        self.users = dataSet['user_id']
+        self.tracks = dataSet['track_id']
+        self.interacted = dataSet['interacted']
+
+    def __len__(self):
+        return len(self.users)
+  
+    def __getitem__(self, idx):
+        return self.users[idx], self.tracks[idx], self.interacted[idx]
 
 # Processes data from the spotify csv file
 # @param dataFile path to a csv file that contains information about a user's spotify playlist
@@ -10,42 +25,24 @@ import numpy as np
 def loadData(dataFile):
     # get user_id and track_id
     colNames = ['user_id', 'track_id']
-    dataSet = pd.read_csv(dataFile, names=colnames, header=None)
-
-    # create mapping of user_ids and track_ids to keep track of what the user has listened to
-    track_mapping = {}
-    for i in range len(dataSet['userId']):
-        # get current track and user id
-        curr_user = dataSet['user_id'][i]
-        curr_track = dataSet['track_id'][i]
-
-        # update list of tracks user has listened to
-        user_tracks = []
-        if (user_id in track_mapping.keys()):
-            user_tracks = track_mapping.get(user_id)
-        user_tracks.append(curr_track)
-
-        # add track list to map
-        track_mapping[curr_user] = user_tracks
+    dataSet = pd.read_csv(dataFile, usecols=[0, 1], names = colNames, header=None)
 
     # add interacted column for tracks already listened to
-    dataSet['interacted'] = [1 for i in range(len(dataSet['userId']))]
+    dataSet['interacted'] = [1 for i in range(len(dataSet['user_id']))]
 
-    # add 5 tracks not interacted with per tracks interacted with for a user
-    all_tracks = dataSet['track_id'].unique()
+    # add 5 tracks not interacted with per tracks interacted with for each user
     for user_id in dataSet['user_id']:
+        user_tracks = dataSet[(dataSet['user_id'] == user_id)]['track_id'].to_numpy().tolist()
+        non_interacted_tracks = [track for track in dataSet['track_id'] if track not in user_tracks]
         for i in range(5):
-            # randomly select a tracl
-            new_track_id = np.random.choice(all_tracks)
-
-            # keep randomly selecting a track until the user hasn't interacted with it
-            user_tracks = track_mapping[user_id]
-            while new_track_id in user_tracks:
-                new_track_id = np.random.choice(all_tracks)
-
+            # if there are no more tracks to add, move on to the next user
+            if len(non_interacted_tracks) <= 0:
+                continue
+            # otherwise, randomly select a track and remove from options
+            new_track_id = np.random.choice(non_interacted_tracks)
+            non_interacted_tracks.remove(new_track_id)
             # add user, new track to dataset mapping
             dataSet.loc[len(dataSet.index)] = [user_id, new_track_id, -1]
-
     return dataSet
 
 # Creates training and testing dataframes. Training data is 80% of randomly selected tracks per user and testing
@@ -57,18 +54,19 @@ def getTrainTestData(data):
     train = []
     test = []
 
-    for user_id in user_ids:
+    for user_id in all_user_ids:
         # get all rows for a user
         user_rows = data.loc[data['user_id'] == user_id]
 
         # randomly split data into training and testing data (appending list faster than appending dataframes)
-        curr_train = user_rows.sample(frac=0.8).to_numpy().tolist()
-        for row in curr_train:
+        curr_train = user_rows.sample(frac=0.8)
+        
+        for row in curr_train.to_numpy().tolist():
             train.append(row)
 
-        curr_test = user_rows.drop(train.index).to_numpy().tolist()
-        for row in curr_train:
-            train.append(row)
+        curr_test = user_rows.drop(curr_train.index)
+        for row in curr_test.to_numpy().tolist():
+            test.append(row)
 
     colNames = ['user_id', 'track_id', 'interacted']
-    [pd.DataFrame(train, columns=colNames), pd.DataFrame(test, columns=colNames)]
+    return pd.DataFrame(train, columns=colNames), pd.DataFrame(test, columns=colNames)
