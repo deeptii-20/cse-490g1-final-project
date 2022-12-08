@@ -1,9 +1,10 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import pandas as pd
+import time
 
-CLIENT_ID = '512eb40fa7af4c8db0864090d056ccfb'
-CLIENT_SECRET = '5afbc098885444848fcbcdf5efa94b3e'
+CLIENT_ID = '512eb40fa7af4c8db0864090d056ccfb'  # '43987e690b184efa9ed09e56b78f10bd'
+CLIENT_SECRET = '5afbc098885444848fcbcdf5efa94b3e'  # 'e1b4e8ce90e846368204b1c8c33d3410'
 SCOPE = "user-library-read user-read-recently-played user-follow-read"
 REDIRECT_URI = "http://localhost/"
 
@@ -25,28 +26,30 @@ def create_spotify_dataset():
     # get the user's name
     user_id = sp.current_user()["display_name"]
     
-    # go through the user's playlists
-    for playlist in sp.current_user_playlists(limit=50)["items"]:
-        for track in sp.playlist_tracks(playlist["id"]):
+    # # go through the user's playlists
+    for playlist in sp.current_user_playlists(limit=25)["items"]:
+        for track in sp.playlist_tracks(playlist["id"])["items"]:
             track_id = track["track"]["id"]
             track_name = track["track"]["name"]
             artist = track["track"]["artists"][0]["name"]
             features = get_filtered_features(sp.audio_features(track_id))
             spotify_df.loc[(len(spotify_df.index))] = [user_id, track_id, track_name, artist, features, True, False, False, False]
     
-    # go through the user's saved tracks
-    for track in sp.current_user_saved_tracks(limit=50)["items"]:
-        track_id = track["track"]["id"]
-        if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
-            spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_saved"] = True
-            continue
-        track_name = track["track"]["name"]
-        artist = track["track"]["artists"][0]["name"]
-        features = get_filtered_features(sp.audio_features(track_id))
-        spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, True, False, False]     
-    
-    # go through the user's recently played tracks
-    for track in sp.current_user_recently_played(limit=50)["items"]:
+    # # go through the user's saved tracks
+    for offset_mult in range(6):
+        for track in sp.current_user_saved_tracks(limit=50, offset=(offset_mult*50))["items"]:
+            track_id = track["track"]["id"]
+            if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
+                spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_saved"] = True
+                continue
+            track_name = track["track"]["name"]
+            artist = track["track"]["artists"][0]["name"]
+            features = get_filtered_features(sp.audio_features(track_id))
+            spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, True, False, False]     
+        
+    # # go through the user's recently played tracks
+    one_month_ago_timestamp = (int(time.time() * 1000)) - (3 * 2629800000)
+    for track in sp.current_user_recently_played(limit=50, after=one_month_ago_timestamp)["items"]:
         track_id = track["track"]["id"]
         if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
             spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_recently_played"] = True
@@ -57,14 +60,17 @@ def create_spotify_dataset():
         spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, False, True, False]    
     
     # go through the user's followed artists
-    for artist in sp.current_user_followed_artists(limit=50)["artists"]["items"]:
-        for track in sp.artist_top_tracks(artist["id"], limit=50):
-            track_id = track["track"]["id"]
+    for artist in sp.current_user_followed_artists(limit=25)["artists"]["items"]:
+        user_tracks_by_artist = spotify_df[((spotify_df['user_id'] == user_id) & (spotify_df['artist'] == artist["name"]))]['track_id'].to_numpy().tolist()
+        for track in user_tracks_by_artist:
+            spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track)), "is_followed_artist"] = True
+        for track in sp.artist_top_tracks(artist["id"])["tracks"]:
+            track_id = track["id"]
             if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
                 spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_followed_artist"] = True
                 continue
-            track_name = track["track"]["name"]
-            artist = track["track"]["artists"][0]["name"]
+            track_name = track["name"]
+            artist = track["artists"][0]["name"]
             features = get_filtered_features(sp.audio_features(track_id))
             spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, False, False, True]
     
