@@ -10,11 +10,17 @@ class SpotifyDataset(Dataset):
         self.tracks = dataSet['track_id']
         self.interacted = dataSet['interacted']
 
-    def __len__(self):
+    def __len__(self): # returns the number of unique (user, track) pairings
         return len(self.users)
   
     def __getitem__(self, idx):
         return self.users[idx], self.tracks[idx], self.interacted[idx]
+
+    def user_size(self):
+        return len(self.users)
+
+    def track_size(self):
+        return len(self.tracks)
 
 # Processes data from the spotify csv file
 # @param dataFile path to a csv file that contains information about a user's spotify playlist
