@@ -29,6 +29,8 @@ def create_spotify_dataset():
     # # go through the user's playlists
     for playlist in sp.current_user_playlists(limit=25)["items"]:
         for track in sp.playlist_tracks(playlist["id"])["items"]:
+            if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
+                continue
             track_id = track["track"]["id"]
             track_name = track["track"]["name"]
             artist = track["track"]["artists"][0]["name"]
