@@ -22,12 +22,52 @@ class SpotifyDataset(Dataset):
     def track_size(self):
         return len(self.tracks)
 
-# Processes data from the spotify csv file
-# @param dataFile path to a csv file that contains information about a user's spotify playlist
-# @returns a dataframe with columns user_id, track_id, and interacted. Interacted will be 1
-# if the user has interacted with the track before (has listened to the track before, 
-# has added the track to a playlist, or has the track as one of their top songs) and -1 if not. It has a
-# 5:1 ratio of tracks that a user hasn't and has interacted with
+def get_feature_values(track):
+    feature_labels = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo']
+    feature_values = []
+    for label in feature_labels:
+        value = track[label]
+        feature_values.append(value)
+    return feature_values
+
+def get_feature_weight(track):
+    weight_labels = ['is_on_playlist', 'is_saved', 'is_recently_played', 'is_followed_artist']
+    weight_values = [0.25, 0.25, 0.25, 0.25]
+    feature_weights = []
+    for label in weight_labels:
+        weight = track[label]
+        feature_weights.append(weight)
+    return sum(i[0] * i[1] for i in zip(feature_weights, weight_values))
+
+def process_user_data(file):
+    colNames = ['user_id', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo', 'is_on_playlist', 'is_saved', 'is_recently_played', 'is_followed_artist']
+    data = pd.read_csv(file, usecols=[0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], names = colNames, header=None)
+    processed_data = {}
+    user_ids = data['user_id'].unique()
+    for user_id in user_ids:
+        user_tracks = data[(data['user_id'] == user_id)]
+        num_tracks = len(user_tracks.index)
+        feature_sum = np.zeros(9)
+        for idx in range(num_tracks):
+            track = user_tracks.iloc[idx]
+            weighted_features = np.array(get_feature_values(track)) * get_feature_weight(track)
+            feature_sum = feature_sum + weighted_features
+        feature_sum /= num_tracks
+        processed_data[user_id] = feature_sum
+    return processed_data
+
+def process_track_data(file):
+    colNames = ['track_id', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo']
+    data = pd.read_csv(file, usecols=[1, 4, 5, 6, 7, 8, 9, 10, 11, 12], names = colNames, header=None)
+    processed_data = {}
+    track_ids = data['track_id'].unique()
+    for track_id in track_ids:
+        track = data[(data['track_id'] == track_id)].iloc[0]
+        features = np.array(get_feature_values(track))
+        processed_data[track_id] = features
+    return processed_data
+
+# TODO: remove
 def loadData(dataFile):
     # get user_id and track_id
     colNames = ['user_id', 'track_id']
