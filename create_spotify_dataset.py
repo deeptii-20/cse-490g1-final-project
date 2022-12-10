@@ -9,9 +9,9 @@ SCOPE = "user-library-read user-read-recently-played user-follow-read"
 REDIRECT_URI = "http://localhost/"
 
 def get_filtered_features(features_list):
-    filtered_features = {}
-    for feature_name in ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo']:
-        filtered_features[feature_name] = features_list[0][feature_name]
+    filtered_features = []
+    for feature_name in ["acousticness", "danceability", "energy", "instrumentalness", "liveness", "loudness", "speechiness", "valence", "tempo"]:
+        filtered_features.append(features_list[0][feature_name])
     return filtered_features
 
 def create_spotify_dataset():
@@ -22,7 +22,7 @@ def create_spotify_dataset():
     sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, scope=SCOPE, redirect_uri=REDIRECT_URI))
     
     # get users' preferences from playlists, saved tracks, recently played tracks, and followed artists -> save info in a dataframe
-    spotify_df = pd.DataFrame(columns=["user_id", "track_id", "track_name", "artist", "features", "is_on_playlist", "is_saved", "is_recently_played", "is_followed_artist"])
+    spotify_df = pd.DataFrame(columns=["user_id", "track_id", "track_name", "artist", "acousticness", "danceability", "energy", "instrumentalness", "liveness", "loudness", "speechiness", "valence", "tempo", "is_on_playlist", "is_saved", "is_recently_played", "is_followed_artist"])
     # get the user's name
     user_id = sp.current_user()["display_name"]
     
@@ -33,7 +33,8 @@ def create_spotify_dataset():
             track_name = track["track"]["name"]
             artist = track["track"]["artists"][0]["name"]
             features = get_filtered_features(sp.audio_features(track_id))
-            spotify_df.loc[(len(spotify_df.index))] = [user_id, track_id, track_name, artist, features, True, False, False, False]
+            interactions = [True, False, False, False]
+            spotify_df.loc[(len(spotify_df.index))] = [user_id, track_id, track_name, artist] + features + interactions
     
     # # go through the user's saved tracks
     for offset_mult in range(6):
@@ -45,7 +46,8 @@ def create_spotify_dataset():
             track_name = track["track"]["name"]
             artist = track["track"]["artists"][0]["name"]
             features = get_filtered_features(sp.audio_features(track_id))
-            spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, True, False, False]     
+            interactions = [False, True, False, False]
+            spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist] + features + interactions
         
     # # go through the user's recently played tracks
     one_month_ago_timestamp = (int(time.time() * 1000)) - (3 * 2629800000)
@@ -57,7 +59,8 @@ def create_spotify_dataset():
         track_name = track["track"]["name"]
         artist = track["track"]["artists"][0]["name"]
         features = get_filtered_features(sp.audio_features(track_id))
-        spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, False, True, False]    
+        interactions = [False, False, True, False]
+        spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist] + features + interactions
     
     # go through the user's followed artists
     for artist in sp.current_user_followed_artists(limit=25)["artists"]["items"]:
@@ -72,7 +75,8 @@ def create_spotify_dataset():
             track_name = track["name"]
             artist = track["artists"][0]["name"]
             features = get_filtered_features(sp.audio_features(track_id))
-            spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist, features, False, False, False, True]
+            interactions = [False, False, False, True]
+            spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist] + features + interactions
     
     # append the dataset to a csv
     spotify_df.to_csv('./data/spotify_dataset.csv', mode='a', index=False, header=False)
