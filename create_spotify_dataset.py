@@ -29,9 +29,11 @@ def create_spotify_dataset():
     # go through the user's playlists
     for playlist in sp.current_user_playlists(limit=25)["items"]:
         for track in sp.playlist_tracks(playlist["id"])["items"]:
-            if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track["track"]["id"])).any():
-                continue
             track_id = track["track"]["id"]
+            if track_id is None:
+                continue
+            if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
+                continue
             track_name = track["track"]["name"]
             artist = track["track"]["artists"][0]["name"]
             features = get_filtered_features(sp.audio_features(track_id))
@@ -42,6 +44,8 @@ def create_spotify_dataset():
     for offset_mult in range(6):
         for track in sp.current_user_saved_tracks(limit=50, offset=(offset_mult*50))["items"]:
             track_id = track["track"]["id"]
+            if track_id is None:
+                continue
             if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
                 spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_saved"] = True
                 continue
@@ -55,6 +59,8 @@ def create_spotify_dataset():
     one_month_ago_timestamp = (int(time.time() * 1000)) - (3 * 2629800000)
     for track in sp.current_user_recently_played(limit=50, after=one_month_ago_timestamp)["items"]:
         track_id = track["track"]["id"]
+        if track_id is None:
+                continue
         if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
             spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_recently_played"] = True
             continue
@@ -71,6 +77,8 @@ def create_spotify_dataset():
             spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track)), "is_followed_artist"] = True
         for track in sp.artist_top_tracks(artist["id"])["tracks"]:
             track_id = track["id"]
+            if track_id is None:
+                continue
             if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
                 spotify_df.loc[((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)), "is_followed_artist"] = True
                 continue
