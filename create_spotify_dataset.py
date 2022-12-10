@@ -26,10 +26,10 @@ def create_spotify_dataset():
     # get the user's name
     user_id = sp.current_user()["display_name"]
     
-    # # go through the user's playlists
+    # go through the user's playlists
     for playlist in sp.current_user_playlists(limit=25)["items"]:
         for track in sp.playlist_tracks(playlist["id"])["items"]:
-            if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track_id)).any():
+            if ((spotify_df["user_id"] == user_id) & (spotify_df["track_id"] == track["track"]["id"])).any():
                 continue
             track_id = track["track"]["id"]
             track_name = track["track"]["name"]
@@ -38,7 +38,7 @@ def create_spotify_dataset():
             interactions = [True, False, False, False]
             spotify_df.loc[(len(spotify_df.index))] = [user_id, track_id, track_name, artist] + features + interactions
     
-    # # go through the user's saved tracks
+    # go through the user's saved tracks
     for offset_mult in range(6):
         for track in sp.current_user_saved_tracks(limit=50, offset=(offset_mult*50))["items"]:
             track_id = track["track"]["id"]
@@ -51,7 +51,7 @@ def create_spotify_dataset():
             interactions = [False, True, False, False]
             spotify_df.loc[len(spotify_df.index)] = [user_id, track_id, track_name, artist] + features + interactions
         
-    # # go through the user's recently played tracks
+    # go through the user's recently played tracks
     one_month_ago_timestamp = (int(time.time() * 1000)) - (3 * 2629800000)
     for track in sp.current_user_recently_played(limit=50, after=one_month_ago_timestamp)["items"]:
         track_id = track["track"]["id"]
