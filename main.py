@@ -4,8 +4,7 @@ import network as n
 import torch.optim as optim
 
 print("loading data...")
-dataset = pd.loadData('data/spotify_dataset.csv')
-train, test = pd.getTrainTestData(dataset)
+train, test = pd.getTrainTestData('data/spotify_dataset.csv')
 train_data = pd.SpotifyDataset(train)
 test_data = pd.SpotifyDataset(test)
 print("done")
@@ -13,7 +12,7 @@ print()
 
 print("making model...")
 TRAIN_BATCH_SIZE = 256
-FEATURE_SIZE = 512 # TODO: he used 8
+FEATURE_SIZE = 9
 TEST_BATCH_SIZE = 256
 EPOCHS = 20
 LEARNING_RATE = 0.002
