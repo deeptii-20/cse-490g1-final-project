@@ -3,8 +3,8 @@ from spotipy.oauth2 import SpotifyOAuth
 import pandas as pd
 import time
 
-CLIENT_ID = '512eb40fa7af4c8db0864090d056ccfb'  # '43987e690b184efa9ed09e56b78f10bd'
-CLIENT_SECRET = '5afbc098885444848fcbcdf5efa94b3e'  # 'e1b4e8ce90e846368204b1c8c33d3410'
+CLIENT_ID = '512eb40fa7af4c8db0864090d056ccfb'
+CLIENT_SECRET = '5afbc098885444848fcbcdf5efa94b3e'
 SCOPE = "user-library-read user-read-recently-played user-follow-read"
 REDIRECT_URI = "http://localhost/"
 
