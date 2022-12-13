@@ -17,16 +17,15 @@ class SpotifyNet(nn.Module):
         self.track_embed = nn.Embedding(self.num_tracks, self.feature_size)
 
         # define layers
-        self.fc1 = nn.Linear(in_features=16, out_features=64)
-        self.fc2 = nn.Linear(in_features=64, out_features=32)
-        self.output = nn.Linear(in_features=32, out_features=1)
+        self.fc1 = nn.Linear(in_features=18, out_features=72)
+        self.fc2 = nn.Linear(in_features=72, out_features=36)
+        self.output = nn.Linear(in_features=36, out_features=1)
     
     def forward(self, users, tracks):
         # combine embedded layer results
         user_embed = self.user_embed(users)
         track_embed = self.track_embed(tracks)
         x = torch.cat([user_embed, track_embed], dim=-1)
-        #x = torch.cat([user_embed, track_embed], dim=1)
 
         # go through layers
         x = self.fc1(x)
@@ -36,18 +35,15 @@ class SpotifyNet(nn.Module):
 
         # return prediction
         out = self.output(x)
-        prediction = f.sigmoid(out)
-        return prediction
+        pred = torch.sigmoid(out)[:, 0, :]
+        return pred
 
     def inference(self, batch):
         users, tracks = batch
         return self.forward(users, tracks) # gets and returns prediction
 
     def loss(self, prediction, scores):
-        # or MSELoss
-        return nn.BCELoss()(prediction, scores.view(-1, 1).float())
-
-
+        return nn.MSELoss()(prediction, scores.view(-1, 1).float())
 
 
 def train(model, optimizer, train_loader, epoch, log_interval):
@@ -56,12 +52,10 @@ def train(model, optimizer, train_loader, epoch, log_interval):
     for batch_idx, (users, tracks, scores) in enumerate(tqdm.tqdm(train_loader)):
         # get prediction
         optimizer.zero_grad()
-        batch = (users, tracks)
-        output = model(batch)
-        pred = output.max(-1)[1]
+        pred = model(users, tracks)
 
         # calculate and print losses
-        loss = model.loss(output, pred, scores)
+        loss = model.loss(pred, scores)
         losses.append(loss.item())
         loss.backward()
         optimizer.step()
@@ -81,20 +75,19 @@ def test(model, test_loader):
     with torch.no_grad():
         for batch_idx, (users, tracks, scores) in enumerate(test_loader):
             # get prediction
-            batch = (users, tracks)
-            output = model(batch)
-            pred = output.max(-1)[1]
+            pred = model(users, tracks)
 
             # calculate loss
-            test_loss += model.loss(output, scores, reduction='mean').item()
-            correct_mask = pred.eq(scores.view_as(pred))
+            test_loss += model.loss(pred, scores).item()
+            correct_mask = (pred - scores.view_as(pred) <= 0.01)
+            #correct_mask = pred.eq(scores.view_as(pred))
             num_correct = correct_mask.sum().item()
             correct += num_correct
 
     test_loss /= len(test_loader)
-    test_accuracy = 100. * correct / (len(test_loader.dataset) * test_loader.dataset.sequence_length)
+    test_accuracy = 100. * correct / len(test_loader.dataset)
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset) * test_loader.dataset.sequence_length,
-        100. * correct / (len(test_loader.dataset) * test_loader.dataset.sequence_length)))
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset)))
     return test_loss, test_accuracy

@@ -14,7 +14,7 @@ class SpotifyDataset(Dataset):
         return len(self.users)
   
     def __getitem__(self, idx):
-        return self.users[idx], self.tracks[idx], self.scores[idx]
+        return np.array(self.users[idx]), np.array(self.tracks[idx]), self.scores[idx]
 
     def user_size(self):
         return len(self.users)
@@ -31,6 +31,14 @@ def getTrainTestData(file):
     user_embed, user_ids = process_user_data(file)
     track_embed, track_ids = process_track_data(file)
 
+    # create mappings of user_ids and track_ids (change from string format) to their encodings
+    user_encodings = {}
+    for user in user_ids:
+        user_encodings[user] = item_to_onehot(user)
+    track_encodings = {}
+    for track in track_ids:
+        track_encodings[track] = item_to_onehot(track)
+
     # calculate normalized scores per user for each track
     normalized_scores = get_scores(user_ids, track_ids, user_embed, track_embed)
 
@@ -39,8 +47,8 @@ def getTrainTestData(file):
     all_tracks = []
     for user in user_ids:
         for track in track_ids:
-            all_users.append(user)
-            all_tracks.append(track)
+            all_users.append(user_encodings.get(user))
+            all_tracks.append(track_encodings.get(track))
     
     # create dataframe of: user_id, track_id, scores
     d = {'user_id': all_users, 'track_id': all_tracks, 'score':normalized_scores.flatten()}
@@ -49,9 +57,17 @@ def getTrainTestData(file):
     # get training and testing data
     train = []
     test = []
-    for user_id in user_ids:
+    for user_id in user_encodings:
+        # get user encoding
+        user_encoding = user_encodings.get(user_id)
+
         # get all rows for a user
-        user_rows = data.loc[data['user_id'] == user_id]
+        user_indexes = []
+        for i, row in data.iterrows():
+            user_id = row['user_id']
+            if user_id == user_encoding:
+                user_indexes.append(i)
+        user_rows = data.iloc[user_indexes]
         
         # randomly split data into training and testing data (appending list faster than appending dataframes)
         curr_train = user_rows.sample(frac=0.8)
@@ -63,6 +79,24 @@ def getTrainTestData(file):
             test.append(row)
     colNames = ['user_id', 'track_id', 'score']
     return pd.DataFrame(train, columns=colNames), pd.DataFrame(test, columns=colNames)
+
+def item_to_onehot(data):
+    # map all potential characters to integers
+    possible_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
+    char_to_int = dict((c, i) for i, c in enumerate(possible_chars))
+    
+    # get values of each character in the input
+    char_values = [char_to_int[char] for char in data]
+    
+    # create one-hot encoding (with padding to ensure same length)
+    encoded = list()
+    for i in range(30):
+        char = [0 for _ in range(len(possible_chars))]
+        if i < len(char_values):
+            val = char_values[i]
+            char[val] = 1
+        encoded.extend(char)
+    return encoded
 
 def get_scores(user_ids, track_ids, user_embed, track_embed):
     # convert user dictionary to numpy array
