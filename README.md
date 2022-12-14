@@ -5,7 +5,9 @@ Deepti Ramani, Simran Malhi
 
 ## Abstract
 
-Abstract - in a paragraph or two, summarize the project
+In this project, we analyze the Spotify data of average users in order to predict compatibility scores for users and songs, then use these predicted scores to generate song recommendations for the users.
+
+We use a Neural Collaborative Filtering model to predict compatibility scores, then output the highest-scoring tracks for each user as recommendations. However, our model was unsuccessful in its predictions: the predicted track scores converged at one value despite the wide variety in the actual scores, which resulted in the same ten songs getting recommended for each user, regardless of their listening habits and actual audio feature preferences. In the future, we plan to experiment with different model architectures and parameters to see if we can improve our model's ability to learn the user and track features.
 
 ---
 
