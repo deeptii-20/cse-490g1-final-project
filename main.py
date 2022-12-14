@@ -14,11 +14,11 @@ print("done")
 print()
 
 print("making model...")
-TRAIN_BATCH_SIZE = 256
+TRAIN_BATCH_SIZE = 50
 FEATURE_SIZE = 9
-TEST_BATCH_SIZE = 256
-EPOCHS = 20
-LEARNING_RATE = 0.002
+TEST_BATCH_SIZE = 50
+EPOCHS = 50
+LEARNING_RATE = 0.001
 WEIGHT_DECAY = 0.0005
 PRINT_INTERVAL = 10
 m = n.SpotifyNet(train_data.user_size(), train_data.track_size(), FEATURE_SIZE)

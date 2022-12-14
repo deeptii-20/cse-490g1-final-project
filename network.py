@@ -18,8 +18,10 @@ class SpotifyNet(nn.Module):
 
         # define layers
         self.fc1 = nn.Linear(in_features=18, out_features=72)
-        self.fc2 = nn.Linear(in_features=72, out_features=36)
-        self.output = nn.Linear(in_features=36, out_features=1)
+        self.fc2 = nn.Linear(in_features=72, out_features=56)
+        self.fc3 = nn.Linear(in_features=56, out_features=32)
+        self.fc4 = nn.Linear(in_features=32, out_features=16)
+        self.output = nn.Linear(in_features=16, out_features=1)
     
     def forward(self, users, tracks):
         # combine embedded layer results
@@ -31,6 +33,10 @@ class SpotifyNet(nn.Module):
         x = self.fc1(x)
         x = f.relu(x)
         x = self.fc2(x)
+        x = f.relu(x)
+        x = self.fc3(x)
+        x = f.relu(x)
+        x = self.fc4(x)
         x = f.relu(x)
 
         # return prediction
