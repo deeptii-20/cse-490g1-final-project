@@ -25,7 +25,14 @@ We approached this problem using the following steps:
 
 4. Generate 10 recommended songs for each user by using the highest predicted compatbility scores
 
-## Spotify Dataset: Users, Tracks, and Scores
+---
+
+## Related Work
+
+### Kaggle Recommendation Competition
+We came across a [Kaggle competition](https://www.kaggle.com/c/movielens-100k) that involved generating movie recommendations using the MovieLens dataset. This idea inspired us to create a Spotify song deep learning recommendation system that uses Spotify's dataset.
+
+### Our Chosen Dataset: The Spotify Dataset (Users, Tracks, and Scores)
 
 The first dataset we used was a collection of Spotify data pulled from five user accounts using the [spotipy](https://spotipy.readthedocs.io/en/2.22.0/) library. 
 
@@ -50,9 +57,10 @@ Then, using the users' preferred audio features and the track audio features, we
 
 ## Methodology
 
+
 ### Retrieving Spotify Data
 
-Retrieving data from Spotify was handled by the `create_spotify_dataset` script. 
+Retrieving data from Spotify was handled by the `create_spotify_dataset.py` script. 
 
 This involves three major steps:
 
@@ -62,9 +70,10 @@ This involves three major steps:
 
 3. Write the dataset to a file, appending it to the end of any existing data (not overwriting)
 
+
 ### Processing Data
 
-Processing Spotify data for training and testing our model was handled by the `process_data` script.
+Processing Spotify data for training and testing our model was handled by the `process_data.py` script. 
 
 This involves five major steps:
    
@@ -78,27 +87,44 @@ This involves five major steps:
    
    5. `get_train_test_data` takes the dataset of scores and separates it into training and test data by randomly selecting 80% of the tracks for each user.
 
+
 ### Neural Network
 
-We trained a Neural Collaborative Filtering model on the dataset in order to generate track scores for the users. The network consisted of 2 embedded layers (1 for users and 1 for tracks) to represent their traits in a lower dimensional space in order to learn the features of the users and tracks. We had 9 features for the embedded layers, since there are 9 audio features associated with each user and track.
+We trained a Neural Collaborative Filtering model on the dataset in order to generate track scores for the users. This network and the train and test methods are defined in `network.py`.
 
-We then concatenated the user and track embeddings into one vector and passed it through a series of fully connected layers consisting of Linear layers with ReLU activation functions to map the embeddings to score predictions. The first linear layer takes in 18 features because the concatenated vector has 18 features (9 user features + 9 track features), and the final linear layer has a output of 1 because we want one score prediction for each (user, track) pairing.
+The network consisted of 2 embedded layers (1 for users and 1 for tracks) to represent their traits in a lower dimensional space in order to learn the features of the users and tracks. We had 9 features for the embedded layers, since each user and track has 9 traits.
 
-Finally, we passed the predictions through a sigmoid function to ensure that they would be between 0 and 1, since the calculated scores were normalized between 0 and 1.
+We then concatenate the user and track embeddings into one vector and pass it through a series of fully connected layers consisting of Linear layers with ReLU activation functions to map the embeddings to score predictions. The first linear layer takes in 18 features because the concatenated vector has 18 features (9 user features + 9 track features). The final linear layer had a output of 1 because we want one score prediction for each (user, track) pairing.
+
+Finally, we then pass the predictions through a sigmoid function to ensure that they would be between 0 and 1, since the calculated scores were normalized between 0 and 1.
+
+For our loss function, we chose to use the MSE loss function because our problem is a regression problem and we are trying to minimize the difference between the predicted and actual scores.
 
 ---
 
 ## Evaluation
 
-### Experiments (TODO - run some experiments and get graphs):
 
-For our experiments, we experimented with changing our batch sizes, epochs, learning rate, and weight decay to improve our test accuracies.
+### Experiments:
 
-Our worst model had batch sizes of 50, 50 epochs, a learning rate of 0.5, and a weight decay of 0.01, as this had a final test accuracy of 19%. Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005, as this model had a final test accuracy of 50%, which is what we stuck with.
+For our experiments, we experimented with changing our batch sizes, epochs, learning rate, and weight decay to improve our test accuracies. We gathered the user data for our experiments through running `create_spotify_dataset.py` for different Spotify users. We then ran our experiments by running `main.py`, which:
 
-### Evaluation (TODO - update comparison value):
+   1. Loaded and processed the training and testing data from `spotify_dataset.csv` through invoking `process_data.py`
 
-To evaluate the accuracy of the score predictions, we calculated the test accuracies for each epoch by subtracting the difference of each predicted and actual scores and counting the number of predicted values that had a difference in value less than 0.000001. We determined that a final test accuracy greater than 30% would be acceptable.
+   2. Initialized the parameters and created and trained the model through invoking `network.py`
+
+   3. Generated the top ten song recommendations per user through sorting the predicted scores for each track (selecting the top ten songs with the highest predicted scores)
+
+Our worst model had batch sizes of 512, 20 epochs, a learning rate of 0.1, and a weight decay of 0.0005, as this had a final epoch test accuracy of 26%.
+
+Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005, as this model had a final epoch test accuracy of 50%, which is what we stuck with.
+
+We would have experimented more with different network architectures to find the most optimal one, however, as mentioned in the Results section, we weren't able to create a model that fulfilled all of our base evaluation criteria.
+
+
+### Evaluation Criteria:
+
+To evaluate the accuracy of the score predictions, we calculated the test accuracies for each epoch by subtracting the difference of each predicted and actual scores and counting the number of predicted values that had a difference in value less than 0.00000001. We determined that a final test accuracy greater than 30% would be acceptable.
 
 To evaluate the accuracy of the recommender system as a whole, we manually reviewed each of the ten song recommendations per user. We determined that the evaluation would be a success if each user had reasonably different song recommendations that align with the songs that they listen to and contain at least one song that they have listened to before. 
 
@@ -118,12 +144,14 @@ We have several possible ideas for why this model didn't work. However, because 
 
 2. **We did not have enough hidden layers.** 
     
-    It is possible that we didn't have enough layers for the model to learn the features of the data with our given parameters (epoch, learning rate, weight decay, batch size).
+    It is possible that we didn't have enough layers for the model to find patterns between the input and output vectors and learn the features of the data with our given parameters (epoch, learning rate, weight decay, batch size).
     
 3. **We did not have good model parameters, specifically the learning rate and weight decay.** 
     
     It is possible that our learning rate was still too large, which caused our model to keep overshooting. Our weight decay may have been too large, which caused our model to severely underfit the data and only create one score prediction at a time for each batch of users and tracks.
 
+4. **We did not use the correct loss function.**
+    We chose to use the MSE loss function we want to minimize the difference between the predicted and actual scores. However, it is possible that our loss function prevented our model from being able to properly fit the data and that there is a better loss function that we can use.
 ---
 
 ## Demo video
