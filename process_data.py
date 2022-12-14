@@ -78,7 +78,7 @@ def getTrainTestData(file):
         for row in curr_test.to_numpy().tolist():
             test.append(row)
     colNames = ['user_id', 'track_id', 'score']
-    return pd.DataFrame(train, columns=colNames), pd.DataFrame(test, columns=colNames)
+    return data, pd.DataFrame(train, columns=colNames), pd.DataFrame(test, columns=colNames)
 
 def item_to_onehot(data):
     # map all potential characters to integers
@@ -97,6 +97,23 @@ def item_to_onehot(data):
             char[val] = 1
         encoded.extend(char)
     return encoded
+
+def onehot_to_item(data):
+    # map all potential characters to integers
+    possible_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
+    int_to_char = dict((i, c) for i, c in enumerate(possible_chars))
+
+    # decode data
+    new_list = np.array(data).reshape(30, len(possible_chars))
+    str = ""
+    for row in new_list:
+        index = np.where(row == 1)
+        if len(index) > 0 and len(index[0]) > 0:
+            char = int_to_char.get(index[0][0])
+            str += char
+        else:
+            break
+    return str
 
 def get_scores(user_ids, track_ids, user_embed, track_embed):
     # convert user dictionary to numpy array
@@ -165,3 +182,15 @@ def process_track_data(file):
         features = np.array(get_feature_values(track))
         processed_data[track_id] = features
     return processed_data, track_ids
+
+def track_mapping(file):
+    colNames = ['track_id', 'track_name', 'artist']
+    data = pd.read_csv(file, usecols=[1, 2, 3], names = colNames, header=None)
+
+    mapping = {}
+    for i, row in data.iterrows():
+        track_id = row['track_id']
+        track_name = row['track_name']
+        artist = row['artist']
+        mapping[track_id] = (track_name, artist)
+    return mapping

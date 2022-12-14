@@ -4,10 +4,14 @@ import network as n
 import torch.optim as optim
 import numpy as np
 
+FILE_NAME = 'data/spotify_dataset.csv'
+
 print("loading data...")
-train, test = pd.getTrainTestData('data/spotify_dataset.csv')
+data, train, test = pd.getTrainTestData(FILE_NAME)
 train_data = pd.SpotifyDataset(train)
 test_data = pd.SpotifyDataset(test)
+print("done")
+print()
 
 print("making model...")
 TRAIN_BATCH_SIZE = 256
@@ -42,14 +46,46 @@ except:
 print("done")
 print()
 
-print("evaluating model...")
-# print("training accuracy: %f", accuracy_net(m, train_data)) # TODO: use hit 10
-# print("test accuracy:     %f", accuracy_net(m, test_data)) # TODO: use hit 10
+print("generating song recommendations...")
+# get track mapping
+track_info = pd.track_mapping(FILE_NAME)
 
-# ep, val = zip(*train_losses)
-# pt_util.plot(ep, val, 'Train loss', 'Epoch', 'Error')
-# ep, val = zip(*test_losses)
-# pt_util.plot(ep, val, 'Test loss', 'Epoch', 'Error')
-# ep, val = zip(*test_accuracies)
-# pt_util.plot(ep, val, 'Test accuracy', 'Epoch', 'Error')
+# get rows in all_data for the user
+unique_users = list(set([pd.onehot_to_item(user_id) for user_id in data['user_id']]))
+for user in unique_users:
+    # get encoding
+    user_encoding = pd.item_to_onehot(user)
+    
+    # get user rows from data
+    user_indexes = []
+    for i, row in data.iterrows():
+        user_id = row['user_id']
+        if user_id == user_encoding:
+            user_indexes.append(i)
+    user_rows = data.iloc[user_indexes]
+
+    # convert each user_id and track_id to numpy arrays
+    users_arr = np.asarray([np.array(user) for user in user_rows["user_id"]]) 
+    tracks_arr = np.asarray([np.array(track) for track in user_rows["track_id"]])
+
+    # get predicted scores
+    predicted_scores = m(torch.LongTensor(users_arr), torch.LongTensor(tracks_arr))
+
+    # store (track, score)
+    track_scores = [(tracks_arr[idx], predicted_scores[idx].item()) for idx in range(len(predicted_scores))]
+    print("Track scores for user ", user)
+    print(track_scores)
+    print()
+
+    # get top ten tracks with the highest score
+    track_scores = sorted(track_scores, key = lambda x : x[1], reverse=True)[0:10]
+    track_ids = [pd.onehot_to_item(track) for (track, score) in track_scores]
+    
+    # print out song recommendations
+    print('Top 10 song recommendations for {}'.format(user))
+    for i in range(len(track_scores)):
+        track_name, track_artist = track_info.get(track_ids[i])
+        print('{}. {} by {}'.format((i+1), track_name, track_artist))
+    print()
+print("done")
 print()

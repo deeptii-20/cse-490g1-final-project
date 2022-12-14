@@ -69,8 +69,6 @@ def test(model, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
-    # hits = []
-    # listened_songs = enumerate(test_loader).groupby('user_id')['track_id'].apply(list).to_dict()
 
     with torch.no_grad():
         for batch_idx, (users, tracks, scores) in enumerate(test_loader):
@@ -80,7 +78,6 @@ def test(model, test_loader):
             # calculate loss
             test_loss += model.loss(pred, scores).item()
             correct_mask = (pred - scores.view_as(pred) <= 0.01)
-            #correct_mask = pred.eq(scores.view_as(pred))
             num_correct = correct_mask.sum().item()
             correct += num_correct
 
