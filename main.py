@@ -7,7 +7,7 @@ import numpy as np
 FILE_NAME = 'data/spotify_dataset.csv'
 
 print("loading data...")
-data, train, test = pd.getTrainTestData(FILE_NAME)
+data, train, test = pd.get_train_test_data(FILE_NAME)
 train_data = pd.SpotifyDataset(train)
 test_data = pd.SpotifyDataset(test)
 print("done")
@@ -29,15 +29,11 @@ print("training...")
 optimizer = optim.Adam(m.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 train_loader = torch.utils.data.DataLoader(train_data, batch_size=TRAIN_BATCH_SIZE, shuffle=False)
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=TEST_BATCH_SIZE, shuffle=False)
-train_losses, test_losses, test_accuracies = [], [], []
 try:
     for epoch in range(1, EPOCHS + 1):
         lr = LEARNING_RATE * np.power(0.25, (int(epoch / 6)))
         train_loss = n.train(m, optimizer, train_loader, epoch, PRINT_INTERVAL)
         test_loss, test_accuracy = n.test(m, test_loader)
-        # train_losses.append((epoch, train_loss))
-        # test_losses.append((epoch, test_loss))
-        # test_accuracies.append((epoch, test_accuracy))
 except KeyboardInterrupt as ke:
         print('Interrupted')
 except:

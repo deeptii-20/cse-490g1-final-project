@@ -83,7 +83,7 @@ def test(model, test_loader):
 
             # calculate loss
             test_loss += model.loss(pred, scores).item()
-            correct_mask = (pred - scores.view_as(pred) <= 0.000001)
+            correct_mask = (pred - scores.view_as(pred) <= 0.00000001)
             num_correct = correct_mask.sum().item()
             correct += num_correct
 

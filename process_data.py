@@ -5,10 +5,10 @@ from torch.utils.data import Dataset
 
 # stores user, track, and interaction data from passed in dataSet
 class SpotifyDataset(Dataset):
-    def __init__(self, dataSet):
-        self.users = dataSet['user_id']
-        self.tracks = dataSet['track_id']
-        self.scores = dataSet['score']
+    def __init__(self, dataset):
+        self.users = dataset['user_id']
+        self.tracks = dataset['track_id']
+        self.scores = dataset['score']
 
     def __len__(self): # returns the number of unique (user, track) pairings
         return len(self.users)
@@ -26,7 +26,7 @@ class SpotifyDataset(Dataset):
 # data is the remaining 20% of the tracks.
 # @param file the file of spotify data
 # @returns [train dataframe, test dataframe]. Dataframe has columns: user_id, track_id, score
-def getTrainTestData(file):
+def get_train_test_data(file):
     # get user and track matrices
     user_features, user_ids = process_user_data(file)
     track_features, track_ids = process_track_data(file)
