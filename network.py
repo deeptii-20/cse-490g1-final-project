@@ -35,7 +35,7 @@ class SpotifyNet(nn.Module):
 
         # return prediction
         out = self.output(x)
-        pred = torch.sigmoid(out)[:, 0, :]
+        pred = torch.sigmoid(out)[:, 0, :].flatten()
         return pred
 
     def inference(self, batch):
@@ -43,7 +43,7 @@ class SpotifyNet(nn.Module):
         return self.forward(users, tracks) # gets and returns prediction
 
     def loss(self, prediction, scores):
-        return nn.MSELoss()(prediction, scores.view(-1, 1).float())
+        return nn.MSELoss()(prediction, scores.view_as(prediction).float())
 
 
 def train(model, optimizer, train_loader, epoch, log_interval):
@@ -77,7 +77,7 @@ def test(model, test_loader):
 
             # calculate loss
             test_loss += model.loss(pred, scores).item()
-            correct_mask = (pred - scores.view_as(pred) <= 0.01)
+            correct_mask = (pred - scores.view_as(pred) <= 0.000001)
             num_correct = correct_mask.sum().item()
             correct += num_correct
 

@@ -73,9 +73,6 @@ for user in unique_users:
 
     # store (track, score)
     track_scores = [(tracks_arr[idx], predicted_scores[idx].item()) for idx in range(len(predicted_scores))]
-    print("Track scores for user ", user)
-    print(track_scores)
-    print()
 
     # get top ten tracks with the highest score
     track_scores = sorted(track_scores, key = lambda x : x[1], reverse=True)[0:10]

@@ -28,44 +28,21 @@ class SpotifyDataset(Dataset):
 # @returns [train dataframe, test dataframe]. Dataframe has columns: user_id, track_id, score
 def getTrainTestData(file):
     # get user and track matrices
-    user_embed, user_ids = process_user_data(file)
-    track_embed, track_ids = process_track_data(file)
-
-    # create mappings of user_ids and track_ids (change from string format) to their encodings
-    user_encodings = {}
-    for user in user_ids:
-        user_encodings[user] = item_to_onehot(user)
-    track_encodings = {}
-    for track in track_ids:
-        track_encodings[track] = item_to_onehot(track)
+    user_features, user_ids = process_user_data(file)
+    track_features, track_ids = process_track_data(file)
 
     # calculate normalized scores per user for each track
-    normalized_scores = get_scores(user_ids, track_ids, user_embed, track_embed)
-
-    # get full lists of users and tracks
-    all_users = []
-    all_tracks = []
-    for user in user_ids:
-        for track in track_ids:
-            all_users.append(user_encodings.get(user))
-            all_tracks.append(track_encodings.get(track))
-    
-    # create dataframe of: user_id, track_id, scores
-    d = {'user_id': all_users, 'track_id': all_tracks, 'score':normalized_scores.flatten()}
-    data = pd.DataFrame(data=d)
+    data = get_scores(user_ids, track_ids, user_features, track_features)
 
     # get training and testing data
     train = []
     test = []
-    for user_id in user_encodings:
-        # get user encoding
-        user_encoding = user_encodings.get(user_id)
-
+    for user_id in user_ids:
         # get all rows for a user
         user_indexes = []
         for i, row in data.iterrows():
-            user_id = row['user_id']
-            if user_id == user_encoding:
+            user_encoding = row['user_id']
+            if user_encoding == item_to_onehot(user_id):
                 user_indexes.append(i)
         user_rows = data.iloc[user_indexes]
         
@@ -80,80 +57,18 @@ def getTrainTestData(file):
     colNames = ['user_id', 'track_id', 'score']
     return data, pd.DataFrame(train, columns=colNames), pd.DataFrame(test, columns=colNames)
 
-def item_to_onehot(data):
-    # map all potential characters to integers
-    possible_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
-    char_to_int = dict((c, i) for i, c in enumerate(possible_chars))
-    
-    # get values of each character in the input
-    char_values = [char_to_int[char] for char in data]
-    
-    # create one-hot encoding (with padding to ensure same length)
-    encoded = list()
-    for i in range(30):
-        char = [0 for _ in range(len(possible_chars))]
-        if i < len(char_values):
-            val = char_values[i]
-            char[val] = 1
-        encoded.extend(char)
-    return encoded
-
-def onehot_to_item(data):
-    # map all potential characters to integers
-    possible_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
-    int_to_char = dict((i, c) for i, c in enumerate(possible_chars))
-
-    # decode data
-    new_list = np.array(data).reshape(30, len(possible_chars))
-    str = ""
-    for row in new_list:
-        index = np.where(row == 1)
-        if len(index) > 0 and len(index[0]) > 0:
-            char = int_to_char.get(index[0][0])
-            str += char
-        else:
-            break
-    return str
-
-def get_scores(user_ids, track_ids, user_embed, track_embed):
-    # convert user dictionary to numpy array
-    user_features = []
-    for user in user_ids:
-        user_features.append(user_embed[user].tolist())
-    user_arr = np.array(user_features)
-
-    # convert track dictionary to numpy array
-    track_features = []
-    for track in track_ids:
-        track_features.append(track_embed[track].tolist())
-    track_arr = np.array(track_features)
-
-    # calculate potential user scores of each track and normalize it between 0 - 1
-    scores = np.dot(user_arr, track_arr.T)
-    normalized_scores = (scores-np.min(scores)) / (np.max(scores) - np.min(scores))
-    return normalized_scores
-
-def remove_from_list(list, value):
-    c = list.count(value)
-    for i in range(c):
-        list.remove(value)
-
-def get_feature_values(track):
-    feature_labels = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo']
-    feature_values = []
-    for label in feature_labels:
-        value = track[label]
-        feature_values.append(value)
-    return feature_values
-
-def get_feature_weight(track):
-    weight_labels = ['is_on_playlist', 'is_saved', 'is_recently_played', 'is_followed_artist']
-    weight_values = [0.25, 0.25, 0.25, 0.25]
-    feature_weights = []
-    for label in weight_labels:
-        weight = track[label]
-        feature_weights.append(weight)
-    return sum(i[0] * i[1] for i in zip(feature_weights, weight_values))
+def get_scores(user_ids, track_ids, user_features, track_features):
+    scores = {'user_id': [], 'track_id': [], 'score': []}
+    for user_id in user_ids:
+        uf = user_features[user_id]
+        for track_id in track_ids:
+            tf = track_features[track_id]
+            score = np.dot(uf, tf)
+            scores['user_id'].append(item_to_onehot(user_id))
+            scores['track_id'].append(item_to_onehot(track_id))
+            scores['score'].append(score)
+    scores['score'] = (scores['score']-np.min(scores['score'])) / (np.max(scores['score']) - np.min(scores['score']))
+    return pd.DataFrame(data=scores)
 
 def process_user_data(file):
     colNames = ['user_id', 'acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo', 'is_on_playlist', 'is_saved', 'is_recently_played', 'is_followed_artist']
@@ -194,3 +109,55 @@ def track_mapping(file):
         artist = row['artist']
         mapping[track_id] = (track_name, artist)
     return mapping
+
+def item_to_onehot(data):
+    # map all potential characters to integers
+    possible_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
+    char_to_int = dict((c, i) for i, c in enumerate(possible_chars))
+    
+    # get values of each character in the input
+    char_values = [char_to_int[char] for char in data]
+    
+    # create one-hot encoding (with padding to ensure same length)
+    encoded = list()
+    for i in range(30):
+        char = [0 for _ in range(len(possible_chars))]
+        if i < len(char_values):
+            val = char_values[i]
+            char[val] = 1
+        encoded.extend(char)
+    return encoded
+
+def onehot_to_item(data):
+    # map all potential characters to integers
+    possible_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
+    int_to_char = dict((i, c) for i, c in enumerate(possible_chars))
+
+    # decode data
+    new_list = np.array(data).reshape(30, len(possible_chars))
+    str = ""
+    for row in new_list:
+        index = np.where(row == 1)
+        if len(index) > 0 and len(index[0]) > 0:
+            char = int_to_char.get(index[0][0])
+            str += char
+        else:
+            break
+    return str
+
+def get_feature_values(track):
+    feature_labels = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'valence', 'tempo']
+    feature_values = []
+    for label in feature_labels:
+        value = track[label]
+        feature_values.append(value)
+    return feature_values
+
+def get_feature_weight(track):
+    weight_labels = ['is_on_playlist', 'is_saved', 'is_recently_played', 'is_followed_artist']
+    weight_values = [0.25, 0.25, 0.25, 0.25]
+    feature_weights = []
+    for label in weight_labels:
+        weight = track[label]
+        feature_weights.append(weight)
+    return sum(i[0] * i[1] for i in zip(feature_weights, weight_values))
