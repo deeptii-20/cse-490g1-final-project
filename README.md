@@ -5,32 +5,26 @@ Deepti Ramani, Simran Malhi
 
 ## Abstract
 
-In this project, we analyze the Spotify data of average users in order to predict compatibility scores for users and songs, then use these predicted scores to generate song recommendations for the users.
+In this project, we analyze the Spotify song data of users in order to predict compatibility scores for users and songs, then use these predicted scores to generate song recommendations for the users. We use a Neural Collaborative Filtering (NCF) model to predict compatibility scores, then output the highest-scoring tracks for each user as recommendations. 
 
-We use a Neural Collaborative Filtering model to predict compatibility scores, then output the highest-scoring tracks for each user as recommendations. However, our model was unsuccessful in its predictions: the predicted track scores converged at one value despite the wide variety in the actual scores, which resulted in the same ten songs getting recommended for each user, regardless of their listening habits and actual audio feature preferences. In the future, we plan to experiment with different model architectures and parameters to see if we can improve our model's ability to learn the user and track features.
+We chose an NCF model because it learns and predict user-item interactions based on past interactions, which is desired for our recommender system. However, our model was unsuccessful in its predictions: the predicted track scores converged at one value despite the wide variety in the actual scores, which resulted in the same ten songs getting recommended for each user, regardless of their listening habits and actual audio feature preferences. We suspect that this is because the model underfit our data due to the layers used parameters used. In the future, we plan to experiment with different numbers and kinds of hidden layers, different loss functions, and different learning rates and weight decays to see if we can improve our model's ability to learn the user and track features.
 
 ---
 
 ## Problem
 
-For our project, we wanted to be able to generate song recommendations for users based on their Spotify data, since it can be difficult to find new songs to listen to. 
+Many Spotify users are hesitant to listen to unfamiliar songs, since they don’t know whether it will suit their interests/likes. Although most users enjoy listening to songs from a particular artist and may use the artist as a starting point for finding new songs to listen to, there are many artists who vary in style from song to song. Thus, listening to songs from followed artists is not enough of a guarantee when users are trying to find a new song.
 
-We approached this problem using the following steps:
-
-1. Collect Spotify data from various users and creating a dataset of users and the songs they have interacted with
-
-2. Process the data to generate compatibility scores for each user/track combination
-
-3. Train the model to learn the user's preferred audio features and predict a score for each user/track combination
-
-4. Generate 10 recommended songs for each user by using the highest predicted compatbility scores
+As the number of songs on Spotify grows, it becomes increasingly difficult for users to quickly find songs that they would enjoy. Thus, for our project, we wanted to create a model to generate song recommendations for users based on their Spotify data (previously listened to songs, followed artists, etc) to streamline this process. 
 
 ---
 
 ## Related Work
 
-### Kaggle Recommendation Competition
-We came across a [Kaggle competition](https://www.kaggle.com/c/movielens-100k) that involved generating movie recommendations using the MovieLens dataset. This idea inspired us to create a Spotify song deep learning recommendation system that uses Spotify's dataset.
+### Our Inspiration: Kaggle Recommendation Competition
+We came across a [Kaggle competition](https://www.kaggle.com/c/movielens-100k) that involved generating movie recommendations using the [MovieLens dataset](https://grouplens.org/datasets/movielens/). Some of the solutions that users in this competition came up with were Multi-Layer Perceptrons, Collaborative Filtering using Pearson Correlation, Matrix Factorization, and Bayesian Probabilistic Rankings.
+
+These ideas inspired us to create a Spotify song recommendation system using deep learning, specifically Neural Collaborative Filtering. We decided to build off of some of the techniques of matrix factorization and collaborative filtering in order to create a NCF.
 
 ### Our Chosen Dataset: The Spotify Dataset (Users, Tracks, and Scores)
 
@@ -57,6 +51,22 @@ Then, using the users' preferred audio features and the track audio features, we
 
 ## Methodology
 
+### Overview
+We approached this problem using the following steps:
+
+By running `create_spotify_dataset.py`:
+
+1. Retreiving Spotify data from various users and creating a dataset of users and the songs they have interacted with.
+
+By running `main.py`:
+
+2. Pre-processing the data to generate compatibility scores for each user/track combination from `spotify_dataset.csv` through invoking `process_data.py`.
+
+3. Initializing the parameters (train and test batch sizes, feature size, epochs, learning rate, weight decay, and test accuracy/loss printing interval) and the Adam optimizer.
+
+4. Defining and training a model to learn the user's preferred audio features and predict a score for each user/track combination through invoking `network.py`.
+
+5. Generate 10 recommended songs for each user by using the highest predicted compatbility scores
 
 ### Retrieving Spotify Data
 
@@ -71,7 +81,7 @@ This involves three major steps:
 3. Write the dataset to a file (`spotify_dataset.csv`), appending it to the end of any existing data (not overwriting)
 
 
-### Processing Data
+### Pre-Processing Data
 
 Processing Spotify data for training and testing our model was handled by the `process_data.py` script. 
 
@@ -104,9 +114,9 @@ This involves five major steps:
    5. `get_train_test_data` takes the dataset of scores (output of `get_scores`) and separates it into training and test data. The training data is generated by randomly selecting 80% of rows (user_encoding, track_encoding, score) for each user. The test data is the remaining 20% of the rows in the dataset.
 
 
-### Neural Network
+### Neural Network Model Definition
 
-We trained a Neural Collaborative Filtering model on the dataset in order to generate track scores for the users. This network and the train and test methods are defined in `network.py`.
+We trained a Neural Collaborative Filtering model on the dataset in order to generate track scores for the users. We chose an NCF model because it learns and predict user-item interactions based on past interactions. The Spotify dataset is user-song interaction based, which is implicit feedback, which makes it easier to gather lots of data. NCFs are able to utilize this implicit feedback in the data in order to learn user song audio preferences in order to predict the likelihood of the user liking a particular track. Thus, this model seemed like a good deep learning solution for a Spotify song recommendation system. This network and the train and test methods are defined in `network.py`.
 
 The network first generates 2 embedded layers (1 for users and 1 for tracks) to represent their traits in a lower dimensional space in order to learn the features of the users and tracks. We had 9 features for the embedded layers, since each user and track has 9 traits.
 
@@ -116,6 +126,20 @@ Finally, we then pass the predicted scores through a sigmoid function to ensure 
 
 For our loss function, we chose to use the MSE loss function because our problem is a regression problem and we are trying to minimize the difference between the predicted and actual scores.
 
+### Song Predictions
+After the model has been trained and evaluated with the training and testing data, we print out the top ten song predictions per user using the following steps:
+
+1. Convert the user onehot and track onehot encodings back to their string id representations using `onehot_to_item`.
+
+2. Get the track name and artist for each track_id
+
+3. For each user:
+    - Get the model score predictions for all of the tracks in the entire dataset
+
+    - Sort the (track_id, scores) from highest to lowest scores
+
+    - Print out the track name and artist for the first ten (track_id, score) items in the sorted list
+
 ---
 
 ## Experiments/Evaluation
@@ -123,15 +147,15 @@ For our loss function, we chose to use the MSE loss function because our problem
 
 ### Experiments
 
-For our experiments, we experimented with changing our batch sizes, epochs, learning rate, and weight decay to improve our test accuracies. We gathered the user data for our experiments through running `create_spotify_dataset.py` for different Spotify users. We then ran our experiments by running `main.py`, which:
+For our experiments, we experimented with changing our batch sizes, epochs, learning rate, and weight decay to improve our test accuracies. As a reminder, we gathered the user data for our experiments through running `create_spotify_dataset.py` for different Spotify users. We then ran our experiments by running `main.py`, which:
 
-   1. Loaded and processed the training and testing data from `spotify_dataset.csv` through invoking `process_data.py` (see processing procedure defined in Processing Data subsection)
+   1. Loaded and processed the training and testing data from `spotify_dataset.csv` through invoking `process_data.py`.
 
-   2. Initialized the parameters (train and test batch sizes, feature size, epochs, learning rate, weight decay, and test accuracy/loss printing interval) and the Adam optimizer
+   2. Initialized the parameters and the Adam optimizer
    
    3. Created and trained the model through invoking `network.py`. When training, per epoch it prints out the test loss for each batch along with the average test loss and test accuracy.
 
-   4. Generated the top ten song recommendations per user through sorting the predicted scores for each track (selecting the top ten songs with the highest predicted scores)
+   4. Generated the top ten song recommendations per user by selecting the top ten songs with the highest scores predicted by the model
 
 Our worst model had batch sizes of 512, 20 epochs, a learning rate of 0.1, and a weight decay of 0.0005, as this had a final epoch test accuracy of 26%.
 
@@ -172,13 +196,9 @@ We have several possible ideas for why this model didn't work. However, because 
     We chose to use the MSE loss function we want to minimize the difference between the predicted and actual scores. However, it is possible that our loss function prevented our model from being able to properly fit the data and that there is a better loss function that we can use.
 ---
 
-## Examples: Demo video (TODO)
+## Video and Examples: Summary and Demo (TODO)
 
 Demo video can be found [here](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/cse490g1-final-project-video.mp4).
-
----
-
-## Summary Video (TODO)
 
 ---
 
