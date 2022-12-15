@@ -332,7 +332,7 @@ Top 10 song recommendations for rohan
 done
 ---
 
-## Video: Summary and Demo
+## Video
 
 Demo video can be found [here](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/cse490g1-final-project-video.mp4).
 
