@@ -196,7 +196,11 @@ We have several possible ideas for why this model didn't work. However, because 
     We chose to use the MSE loss function we want to minimize the difference between the predicted and actual scores. However, it is possible that our loss function prevented our model from being able to properly fit the data and that there is a better loss function that we can use.
 ---
 
-## Video and Examples: Summary and Demo (TODO)
+## Examples (TODO)
+
+---
+
+## Video: Summary and Demo (TODO)
 
 Demo video can be found [here](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/cse490g1-final-project-video.mp4).
 
