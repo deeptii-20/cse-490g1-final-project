@@ -162,7 +162,7 @@ Our worst model had batch sizes of 512, 20 epochs, a learning rate of 0.1, and a
 ![img2](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/worst-test-loss.png)
 ![img3](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/worst-train-loss.png)
 
-Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005. Since this model had a final epoch test accuracy of 50%, which is what we stuck with.
+Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005. Since this model had a final epoch test accuracy of 58% and had accuracies consistently between 40% - 60%, we stuck with it.
 ![img4](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/best-test-acc.png)
 ![img5](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/best-test-loss.png)
 ![img6](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/best-train-loss.png)
