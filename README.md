@@ -200,9 +200,9 @@ We have several possible ideas for why this model didn't work. However, because 
     We chose to use the MSE loss function we want to minimize the difference between the predicted and actual scores. However, it is possible that our loss function prevented our model from being able to properly fit the data and that there is a better loss function that we can use.
 ---
 
-## Examples (TODO)
+## Example Outputs
 
-### Output for worst model:
+### Output for worst model
 generating song recommendations...
 Top 10 song recommendations for Sylvi
 1. Aap Jaisa Koi - Qurbani / Soundtrack Version by Nazia Hassan
@@ -265,11 +265,11 @@ Top 10 song recommendations for rohan
 10. Mere Sapnon Ki Rani (From "Aradhana") by Kishore Kumar
 done
 
-### Output for best model:
+### Output for best model
 
 ---
 
-## Video: Summary and Demo (TODO)
+## Video: Summary and Demo
 
 Demo video can be found [here](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/cse490g1-final-project-video.mp4).
 
