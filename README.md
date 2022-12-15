@@ -13,7 +13,7 @@ We chose an NCF model because it learns and predict user-item interactions based
 
 ## Problem
 
-Many Spotify users are hesitant to listen to unfamiliar songs, since they don’t know whether it will suit their interests/likes. Although most users enjoy listening to songs from a particular artist and may use the artist as a starting point for finding new songs to listen to, there are many artists who vary in style from song to song. Thus, listening to songs from followed artists is not enough of a guarantee when users are trying to find a new song.
+Many Spotify users are hesitant to listen to unfamiliar songs, since they don’t know whether it will suit their interests/likes. Although most users enjoy listening to songs from a particular artist and may use the artist as a starting point for finding new songs to listen to, there are many artists who vary in style from song to song. Thus, listening to songs from followed artists is not enough of a guarantee that users will find a new song that they like.
 
 As the number of songs on Spotify grows, it becomes increasingly difficult for users to quickly find songs that they would enjoy. Thus, for our project, we wanted to create a model to generate song recommendations for users based on their Spotify data (previously listened to songs, followed artists, etc) to streamline this process. 
 
