@@ -157,9 +157,12 @@ For our experiments, we experimented with changing our batch sizes, epochs, lear
 
    4. Generated the top ten song recommendations per user by selecting the top ten songs with the highest scores predicted by the model
 
-Our worst model had batch sizes of 512, 20 epochs, a learning rate of 0.1, and a weight decay of 0.0005, as this had a final epoch test accuracy of 26%.
+Our worst model had batch sizes of 512, 20 epochs, a learning rate of 0.1, and a weight decay of 0.0005. This had test accuracies that fluctuated dramatically between epochs, bouncing between test accuracies from around 26% to 73%.
+![img1](/results/worst-test-acc)
+![img2](/results/worst-test-loss)
+![img3](/results/worst-train-loss)
 
-Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005, as this model had a final epoch test accuracy of 50%, which is what we stuck with.
+Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005. Since this model had a final epoch test accuracy of 50%, which is what we stuck with.
 
 We would have experimented more with different network architectures to find the most optimal one, however, as mentioned in the Results section, we weren't able to create a model that fulfilled all of our base evaluation criteria.
 
@@ -197,6 +200,71 @@ We have several possible ideas for why this model didn't work. However, because 
 ---
 
 ## Examples (TODO)
+
+### Output for worst model:
+generating song recommendations...
+Top 10 song recommendations for Sylvi
+1. Aap Jaisa Koi - Qurbani / Soundtrack Version by Nazia Hassan
+2. Aao Chalein by Taba Chake
+3. Papa Kahte Hain by Udit Narayan
+4. Suhani Raat Dhal Chuki by Mohammed Rafi
+5. Patakha Guddi by Sultana
+6. Nadiyon Paar (Let the Music Play Again) (From "Roohi") by Sachin-Jigar
+7. Aaj Se Pehle Aaj Se Jyada by K. J. Yesudas
+8. Tujhse Naraz Nahin Zindagi - Male Vocals by Anup Ghoshal
+9. Pukarta Chala Hoon Main (From "Mere Sanam") by Mohammed Rafi
+10. Mere Sapnon Ki Rani (From "Aradhana") by Kishore Kumar
+
+Top 10 song recommendations for cruella
+1. Aap Jaisa Koi - Qurbani / Soundtrack Version by Nazia Hassan
+2. Aao Chalein by Taba Chake
+3. Papa Kahte Hain by Udit Narayan
+4. Suhani Raat Dhal Chuki by Mohammed Rafi
+5. Patakha Guddi by Sultana
+6. Nadiyon Paar (Let the Music Play Again) (From "Roohi") by Sachin-Jigar
+7. Aaj Se Pehle Aaj Se Jyada by K. J. Yesudas
+8. Tujhse Naraz Nahin Zindagi - Male Vocals by Anup Ghoshal
+9. Pukarta Chala Hoon Main (From "Mere Sanam") by Mohammed Rafi
+10. Mere Sapnon Ki Rani (From "Aradhana") by Kishore Kumar
+
+Top 10 song recommendations for Josh Seitz
+1. Aap Jaisa Koi - Qurbani / Soundtrack Version by Nazia Hassan
+2. Aao Chalein by Taba Chake
+3. Papa Kahte Hain by Udit Narayan
+4. Suhani Raat Dhal Chuki by Mohammed Rafi
+5. Patakha Guddi by Sultana
+6. Nadiyon Paar (Let the Music Play Again) (From "Roohi") by Sachin-Jigar
+7. Aaj Se Pehle Aaj Se Jyada by K. J. Yesudas
+8. Tujhse Naraz Nahin Zindagi - Male Vocals by Anup Ghoshal
+9. Pukarta Chala Hoon Main (From "Mere Sanam") by Mohammed Rafi
+10. Mere Sapnon Ki Rani (From "Aradhana") by Kishore Kumar
+
+Top 10 song recommendations for OpalApple
+1. Aap Jaisa Koi - Qurbani / Soundtrack Version by Nazia Hassan
+2. Aao Chalein by Taba Chake
+3. Papa Kahte Hain by Udit Narayan
+4. Suhani Raat Dhal Chuki by Mohammed Rafi
+5. Patakha Guddi by Sultana
+6. Nadiyon Paar (Let the Music Play Again) (From "Roohi") by Sachin-Jigar
+7. Aaj Se Pehle Aaj Se Jyada by K. J. Yesudas
+8. Tujhse Naraz Nahin Zindagi - Male Vocals by Anup Ghoshal
+9. Pukarta Chala Hoon Main (From "Mere Sanam") by Mohammed Rafi
+10. Mere Sapnon Ki Rani (From "Aradhana") by Kishore Kumar
+
+Top 10 song recommendations for rohan
+1. Aap Jaisa Koi - Qurbani / Soundtrack Version by Nazia Hassan
+2. Aao Chalein by Taba Chake
+3. Papa Kahte Hain by Udit Narayan
+4. Suhani Raat Dhal Chuki by Mohammed Rafi
+5. Patakha Guddi by Sultana
+6. Nadiyon Paar (Let the Music Play Again) (From "Roohi") by Sachin-Jigar
+7. Aaj Se Pehle Aaj Se Jyada by K. J. Yesudas
+8. Tujhse Naraz Nahin Zindagi - Male Vocals by Anup Ghoshal
+9. Pukarta Chala Hoon Main (From "Mere Sanam") by Mohammed Rafi
+10. Mere Sapnon Ki Rani (From "Aradhana") by Kishore Kumar
+done
+
+### Output for best model:
 
 ---
 
