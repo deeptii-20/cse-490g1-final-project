@@ -158,9 +158,9 @@ For our experiments, we experimented with changing our batch sizes, epochs, lear
    4. Generated the top ten song recommendations per user by selecting the top ten songs with the highest scores predicted by the model
 
 Our worst model had batch sizes of 512, 20 epochs, a learning rate of 0.1, and a weight decay of 0.0005. This had test accuracies that fluctuated dramatically between epochs, bouncing between test accuracies from around 26% to 73%.
-![img1](/results/worst-test-acc)
-![img2](/results/worst-test-loss)
-![img3](/results/worst-train-loss)
+![img1](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/worst-test-acc.png)
+![img2](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/worst-test-loss.png)
+![img3](https://github.com/deeptii-20/cse-490g1-final-project/blob/main/results/worst-train-loss.png)
 
 Our best model had batch sizes of 50, 50 epochs, a learning rate of 0.001, and a weight decay of 0.0005. Since this model had a final epoch test accuracy of 50%, which is what we stuck with.
 
