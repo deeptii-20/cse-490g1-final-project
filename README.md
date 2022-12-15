@@ -196,6 +196,7 @@ We have several possible ideas for why this model didn't work. However, because 
     It is possible that our learning rate was still too large, which caused our model to keep overshooting. Our weight decay may have been too large, which caused our model to severely underfit the data and only create one score prediction at a time for each batch of users and tracks.
 
 4. **We did not use the correct loss function.**
+    
     We chose to use the MSE loss function we want to minimize the difference between the predicted and actual scores. However, it is possible that our loss function prevented our model from being able to properly fit the data and that there is a better loss function that we can use.
 ---
 
